@@ -36,6 +36,7 @@ public class MainActivity extends Activity implements OnClickListener {
     ImageView imageView;
     private BroadcastReceiver imageReceiver;
     private ProgressDialog progressDialog;
+    private BroadcastReceiver updateReceiver;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -54,17 +55,26 @@ public class MainActivity extends Activity implements OnClickListener {
                 }
                 File imageFile=new File(location);
                 if(!imageFile.exists()){
-                    progressDialog.dismiss();
+                    //progressDialog.dismiss();
+                    progressBar.setVisibility(View.GONE);
                     Toast.makeText(context, "Unable to download file", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
+                progressBar.setVisibility(View.GONE);
                 Bitmap b= BitmapFactory.decodeFile(location);
                 imageView.setImageBitmap(b);
-                progressDialog.dismiss();
+                //progressDialog.dismiss();
             }
         };
 
+        updateReceiver=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int update=intent.getIntExtra("update", 0);
+                progressBar.setProgress(update);
+            }
+        };
 
 	}
 
@@ -79,10 +89,18 @@ public class MainActivity extends Activity implements OnClickListener {
 	public void onClick(View view) {
 		switch(view.getId()){
 			case R.id.button:{
-                progressDialog=ProgressDialog.show(this, "Please Wait..", "");
+                //progressDialog=ProgressDialog.show(this, "Please Wait..", "");
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setMax(100);
+                progressBar.setProgress(0);
                 IntentFilter intentFilter=new IntentFilter();
                 intentFilter.addAction(DownloadService.TRANS_DONE);
                 registerReceiver(imageReceiver, intentFilter);
+
+                IntentFilter intentFilterUpdate=new IntentFilter();
+                intentFilterUpdate.addAction(DownloadService.TRANS_UPDATE);
+                registerReceiver(updateReceiver, intentFilterUpdate);
+
                 Intent intent=new Intent(this, DownloadService.class);
                 intent.putExtra("url", "http://www.technobuffalo.com/wp-content/uploads/2012/12/Google-Apps.jpeg");
                 startService(intent);
