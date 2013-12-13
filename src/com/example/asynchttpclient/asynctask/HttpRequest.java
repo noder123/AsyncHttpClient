@@ -18,6 +18,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 
+/*
+* The following types of network requests can be made:
+* 1. File downloads
+* 2. WebService calls
+* 3. Both file uploads and WebService calls sequentially.
+*/
+
 /**
  * Created with IntelliJ IDEA.
  * User: I302083

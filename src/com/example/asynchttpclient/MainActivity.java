@@ -1,11 +1,17 @@
 package com.example.asynchttpclient;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.Toast;
 import com.example.asynchttpclient.asynctask.DownloadImage;
+import com.example.asynchttpclient.service.DownloadService;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -28,6 +34,8 @@ public class MainActivity extends Activity implements OnClickListener {
 	Button button;
 	ProgressBar progressBar;
     ImageView imageView;
+    private BroadcastReceiver imageReceiver;
+    private ProgressDialog progressDialog;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -37,6 +45,27 @@ public class MainActivity extends Activity implements OnClickListener {
 		progressBar=(ProgressBar)findViewById(R.id.progressBar);
 		imageView=(ImageView)findViewById(R.id.imageView);
 		progressBar.setVisibility(View.GONE);
+        imageReceiver=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String location=intent.getStringExtra("location");
+                if(location==null || location.length()==0){
+                    Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show();
+                }
+                File imageFile=new File(location);
+                if(!imageFile.exists()){
+                    progressDialog.dismiss();
+                    Toast.makeText(context, "Unable to download file", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Bitmap b= BitmapFactory.decodeFile(location);
+                imageView.setImageBitmap(b);
+                progressDialog.dismiss();
+            }
+        };
+
+
 	}
 
 	@Override
@@ -50,7 +79,14 @@ public class MainActivity extends Activity implements OnClickListener {
 	public void onClick(View view) {
 		switch(view.getId()){
 			case R.id.button:{
-				new DownloadImage(imageView, progressBar, getApplicationContext()).execute("http://www.technobuffalo.com/wp-content/uploads/2012/12/Google-Apps.jpeg");
+                progressDialog=ProgressDialog.show(this, "Please Wait..", "");
+                IntentFilter intentFilter=new IntentFilter();
+                intentFilter.addAction(DownloadService.TRANS_DONE);
+                registerReceiver(imageReceiver, intentFilter);
+                Intent intent=new Intent(this, DownloadService.class);
+                intent.putExtra("url", "http://www.technobuffalo.com/wp-content/uploads/2012/12/Google-Apps.jpeg");
+                startService(intent);
+				//new DownloadImage(imageView, progressBar, getApplicationContext()).execute("http://www.technobuffalo.com/wp-content/uploads/2012/12/Google-Apps.jpeg");
 			}
 		}
 		
