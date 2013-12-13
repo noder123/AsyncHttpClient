@@ -2,6 +2,10 @@ package com.example.asynchttpclient;
 
 import java.io.*;
 
+import android.animation.AnimatorSet;
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,7 +13,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.widget.Toast;
+import android.os.Build;
+import android.widget.*;
 import com.example.asynchttpclient.asynctask.DownloadImage;
 import com.example.asynchttpclient.service.DownloadService;
 import org.apache.http.HttpEntity;
@@ -26,9 +31,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.ImageView;
 
 public class MainActivity extends Activity implements OnClickListener {
 	Button button;
@@ -37,6 +39,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private BroadcastReceiver imageReceiver;
     private ProgressDialog progressDialog;
     private BroadcastReceiver updateReceiver;
+    private Notification notification;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -73,6 +76,7 @@ public class MainActivity extends Activity implements OnClickListener {
             public void onReceive(Context context, Intent intent) {
                 int update=intent.getIntExtra("update", 0);
                 progressBar.setProgress(update);
+                notification.contentView.setProgressBar(R.id.download_progressBar, 100, update, false);
             }
         };
 
@@ -85,11 +89,23 @@ public class MainActivity extends Activity implements OnClickListener {
 		return true;
 	}
 
-	@Override
+    @Override
 	public void onClick(View view) {
 		switch(view.getId()){
 			case R.id.button:{
                 //progressDialog=ProgressDialog.show(this, "Please Wait..", "");
+                RemoteViews remoteViews=new RemoteViews(getPackageName(), R.layout.download_progress);
+                remoteViews.setProgressBar(R.id.download_progressBar, 100, 0, false);
+
+                // Instantiate a Builder object.
+                notification=new Notification();
+                notification.contentView=remoteViews;
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
+
+
+                NotificationManager notificationManager=(NotificationManager)getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(0, notification);
+
                 progressBar.setVisibility(View.VISIBLE);
                 progressBar.setMax(100);
                 progressBar.setProgress(0);
