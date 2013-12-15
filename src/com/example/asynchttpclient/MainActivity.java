@@ -76,7 +76,7 @@ public class MainActivity extends Activity implements OnClickListener {
             public void onReceive(Context context, Intent intent) {
                 int update=intent.getIntExtra("update", 0);
                 progressBar.setProgress(update);
-                notification.contentView.setProgressBar(R.id.download_progressBar, 100, update, false);
+                //notification.contentView.setProgressBar(R.id.download_progressBar, 100, update, false);
             }
         };
 
@@ -94,18 +94,6 @@ public class MainActivity extends Activity implements OnClickListener {
 		switch(view.getId()){
 			case R.id.button:{
                 //progressDialog=ProgressDialog.show(this, "Please Wait..", "");
-                RemoteViews remoteViews=new RemoteViews(getPackageName(), R.layout.download_progress);
-                remoteViews.setProgressBar(R.id.download_progressBar, 100, 0, false);
-
-                // Instantiate a Builder object.
-                notification=new Notification();
-                notification.contentView=remoteViews;
-                notification.flags |= Notification.FLAG_AUTO_CANCEL;
-
-
-                NotificationManager notificationManager=(NotificationManager)getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.notify(0, notification);
-
                 progressBar.setVisibility(View.VISIBLE);
                 progressBar.setMax(100);
                 progressBar.setProgress(0);
